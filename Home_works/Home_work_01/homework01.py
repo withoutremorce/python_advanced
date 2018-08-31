@@ -1,3 +1,14 @@
+# Задание 1. Встроенные типы данных, операторы, функции и генераторы
+#
+# Напишите реализации объявленных ниже функций. Для проверки
+# корректности реализации ваших функций, запустите тесты:
+#
+# pytest test_homework01.py
+#
+# Если написанный вами код не содержит синтаксических ошибок,
+# вы увидите результаты тестов ваших решений.
+
+
 def fac(n):
     """
     Факториал
@@ -13,11 +24,9 @@ def fac(n):
     for i in range(n+1):
         if i >= 1:
             numbers_set.add(i)
-    print(numbers_set)
     for j in numbers_set:
         number = j * number
-        print(j)
-    print('number {}'.format(number))
+    return number
 
 
 def gcd(a, b):
@@ -49,9 +58,6 @@ def gcd(a, b):
         for i in nod_for_b:
             if i in nod_for_a:
                 j = i
-    print(nod_for_a)
-    print(nod_for_b)
-    print(j)
     return j
 
 
@@ -73,9 +79,9 @@ def fib():
     fib_numbers.append(1)
     fib_numbers.append(1)
     while True:
+        yield fib_numbers[-2]
         fib_num = fib_numbers[-1] + fib_numbers[-2]
         fib_numbers.append(fib_num)
-        yield fib_numbers
 
 
 def flatten(seq):
@@ -83,16 +89,15 @@ def flatten(seq):
     Функция, преобразующая вложенные последовательности любого уровня
     вложенности в плоские, одноуровневые.
 
-    >>> flatten([])
-    []
-    >>> flatten([1, 2])
-    [1, 2]
-    >>> flatten([1, [2, [3]]])
-    [1, 2, 3]
-    >>> flatten([(1, 2), (3, 4)])
+    # >>> flatten([])
+    # []
+    # >>> flatten([1, 2])
+    # [1, 2]
+    # >>> flatten([1, [2, [3]]])
+    # [1, 2, 3]
+    # >>> flatten([(1, 2), (3, 4)])
     [1, 2, 3, 4]
     """
-
     temp = list()
     for i in seq:
         if type(i) is list or type(i) is tuple:
@@ -104,7 +109,7 @@ def flatten(seq):
     return temp
 
 
-def call_count(fn):
+class call_count:
     """
     Декоратор, подсчитывающий количество вызовов задекорированной функции.
 
@@ -113,38 +118,26 @@ def call_count(fn):
     @call_count
     def add(a, b):
         return a + b
-
-    >>> add.call_count
-    0
-    >>> add(1, 2)
-    3
-    >>> add.call_count
-    1
+    #
+    # >>> add.call_count
+    # 0
+    # >>> add(1, 2)
+    # 3
+    # >>> add.call_count
+    # 1
 
     Подсказки по реализации: функторы, @property
 
     """
-    def wrapper(*args, **kwargs):
-        wrapper.call_count += 1
-        return fn(*args, **kwargs)
-    wrapper.call_count = 0
-    return wrapper
 
+    def __init__(self, *args, **kwargs):
+        self._call_count = 0
 
+    def __call__(self, *args, **kwargs):
+        self._call_count += 1
+        return {'args': args, 'kwargs': kwargs}
 
+    @property
+    def call_count(self, *args, **kwargs):
+        return self._call_count
 
-# print(fac(5))
-# print gcd(2, 4)
-# f = fib()
-# while True:
-#     print(next(f))
-#print(flatten(seq=[[4, [2]], 5, [6, (7, 8,[9])]]))
-
-@call_count
-def add(a, b):
-    return a + b
-
-print(add(1, 2))
-print(add.call_count)
-add(2,3)
-print(add.call_count)

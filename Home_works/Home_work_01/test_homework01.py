@@ -2,7 +2,7 @@ from itertools import islice
 
 import pytest
 
-from Lesson_3_enter_to_OOP.Home_work.homework01 import call_count, fac, fib, flatten, gcd
+from homework01 import call_count, fac, fib, flatten, gcd
 
 
 @pytest.mark.parametrize('a, b', [
