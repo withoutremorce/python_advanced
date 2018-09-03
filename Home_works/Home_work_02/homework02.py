@@ -8,7 +8,10 @@ from django.conf import settings
 from django.core.cache import cache
 from django.conf.urls import url
 from django.http import HttpResponse
-
+import random
+import re
+from urllib import parse
+from django.shortcuts import redirect
 
 # Задание 2. URL shortener
 #
@@ -59,7 +62,10 @@ def random_key():
     Минимальная длина ключа - 5 символов. Для генерации случайных
     последовательностей вы можете воспользоваться библиотекой random.
     """
-    pass
+    key = ''.join([random.choice('123456789qwertyuiopasdfghjklzxc'
+                                 'vbnmQWERTYUIOPASDFGHJKLZXCVBNM') for x in range(5)])
+    print(key)
+    return key
 
 
 def index(request):
@@ -85,7 +91,13 @@ def shorten(request, url):
     Удобно, если это будет кликабельная ссылка (HTML тег 'a') вида
     <a href="http://localhost:8000/ключ">ключ</a>
     """
-    pass
+    if re.match('(?i)https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+', url):
+        rand_key = random_key()
+        while rand_key not in cache:
+            cache.add(rand_key, url)
+        return HttpResponse('<a href="http://localhost:8000/{0}">{0}</a>'.format(rand_key))
+    else:
+        return index('/')
 
 
 def redirect_view(request, key):
@@ -98,7 +110,15 @@ def redirect_view(request, key):
     Для редиректа можете воспользоваться вспомогательной функцией
     django.shortcuts.redirect(redirect_to) или классом-наследником HttpResponse
     """
-    pass
+    try:
+        url_big = parse.urlparse(key)
+        key = url_big.path
+    except Exception:
+        return redirect('/')
+    if key in cache:
+        return redirect(cache.get(key))
+    else:
+        return redirect('/')
 
 
 def urlstats(request, key):

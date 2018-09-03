@@ -26,6 +26,7 @@ def test_shorten_redirect_keystats(client):
         assert response.status_code == 200
         assert test_key in response.content.decode()
 
+
         response = client.get('/' + test_key)
         assert response.status_code == 302
         assert response.url == test_url
