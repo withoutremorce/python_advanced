@@ -13,6 +13,7 @@ import random
 import re
 import requests
 from urllib import parse
+from django.core.cache import caches
 
 # Задание 2. URL shortener
 #
@@ -54,7 +55,18 @@ if not settings.configured:
         DEBUG=True,
         ROOT_URLCONF=__name__,
     )
-
+    settings.CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': 'default_cache',
+        },
+        'counter_cache': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': 'counter_cache',
+        }
+    }
+    urls_cache = caches['default']
+    counter_cache = caches['counter_cache']
 
 def random_key():
     """
@@ -96,13 +108,13 @@ def shorten(request, url):
         request_test = requests.get(url, allow_redirects=False)
         print(request_test.status_code)
         rand_key = random_key()
-        while rand_key not in cache:
-            cache.add(rand_key, url)
-            print('add successfully')
-        print(cache.get(rand_key))
+        urls_cache.get_or_set(rand_key, url)
+        counter_cache.set(rand_key, 0)
+        print('add successfully')
+        print(urls_cache.get(rand_key))
         return HttpResponse('<a href="http://localhost:8000/{0}">{0}</a>'.format(rand_key))
     else:
-        return index('/')
+        return redirect('/')
     # print(parse.urlparse(url))
 
 def redirect_view(request, key):
@@ -120,13 +132,17 @@ def redirect_view(request, key):
         key = url_big.path
     except Exception:
         return redirect('/')
-    if key in cache:
-        return redirect(cache.get(key))
+    if key in urls_cache:
+        print('TEST1 {}'.format(counter_cache))
+        print('TEST2 {}'.format(counter_cache.get(key)))
+        counter_cache.set(key, counter_cache.get(key) + 1)
+        print('COUNTER = {}'.format(counter_cache.get(key)))
+        return redirect(urls_cache.get(key))
     else:
         return redirect('/')
 
 
-class urlstats:
+def urlstats(request, key):
     """
     (Опционально)
 
@@ -134,26 +150,32 @@ class urlstats:
     В теле ответа функция должна возращать количество
     переходов по данному коду.
     """
-    def __init__(self):
-        self.call_dict = dict()
-        self.count = 0
-
-    def __call__(self, request, key):
-        if key in self.call_dict:
-            self.count = self.call_dict[key] + 1
-        self.call_dict[key] = self.count
-        print(self.call_dict)
-        return HttpResponse('<a href="http://localhost:8000/{0}">{0}</a>'.format(self.count))
+    # def __init__(self):
+    #     self.call_dict = dict()
+    #     self.count = 0
+    #
+    # def __call__(self, request, key):
+    #     if key in self.call_dict:
+    #         self.count = self.call_dict[key] + 1
+    #     self.call_dict[key] = self.count
+    #     print(self.call_dict)
+    #     return HttpResponse('<a href="http://localhost:8000/{0}">{0}</a>'.format(self.count))
+    # count = 0
+    print('URLSTATSSSSSS + {}'.format(counter_cache.get(key)))
+    if key in counter_cache:
+        return HttpResponse('<h1>{0}</h1>'.format(counter_cache.get(key)))
+    else:
+        return redirect('/')
 
 
 urlpatterns = [
     url(r'^$', index),
     # http://localhost:8000/shorten/<url>
     url(r'shorten/(.+)', shorten),
-    # http://localhost:8000/<key>
-    url(r'([\w\d]+)', redirect_view),
     # http://localhost:8000/urlstats/<key>
     url(r'urlstats/([\w\d]+)', urlstats),
+    # http://localhost:8000/<key>
+    url(r'([\w\d]+)', redirect_view),
 ]
 
 
@@ -163,8 +185,9 @@ if __name__ == '__main__':
     execute_from_command_line(sys.argv)
 
 
-# url = ''
+# url = 'http://www.python.org/'
 # shorten('r', url)
 # response = django.test.client('/shorten/' + url)
 # # print(response.status_code)
-# redirect_view(1, url)
+# def client():
+#     return django.http.Client()
