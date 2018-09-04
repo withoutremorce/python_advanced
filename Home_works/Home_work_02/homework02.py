@@ -84,7 +84,6 @@ urlpatterns = [
     url(r'([\w\d]+)', redirect_view),
 ]
 
-
 if __name__ == '__main__':
     import sys
     from django.core.management import execute_from_command_line
