@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 import random
 import re
+import requests
 from urllib import parse
 from django.core.cache import caches
 
@@ -45,7 +46,7 @@ def index(request):
 def shorten(request, url):
     if re.match('(?i)https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+', url):
         rand_key = random_key()
-        urls_cache.get_or_set(rand_key, url)
+        urls_cache.set(rand_key, url)
         counter_cache.set(rand_key, 0)
         return HttpResponse('<a href="http://localhost:8000/{0}">{0}</a>'.format(rand_key))
     else:
