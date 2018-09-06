@@ -9,7 +9,6 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 import random
 import re
-import requests
 from urllib import parse
 from django.core.cache import caches
 
